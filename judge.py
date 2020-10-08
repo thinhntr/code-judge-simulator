@@ -4,10 +4,14 @@ import subprocess
 from time import perf_counter
 from os import listdir
 from os.path import join
-
+try:
+    from natsort import natsorted as sorted
+except ImportError:
+    pass
 
 def report(
         test_id,
+        test_input,
         user_output,
         correct_output,
         user_runtime,
@@ -59,15 +63,19 @@ def report(
 
     # Additional information
     if verbose:
-        if return_code not in ['PASS', 'RTE', 'TLE']:
-            report_text.append('Correct output\n')
-            report_text.append(correct_output)
-            report_text.append('\n')
+        report_text.append('Input\n')
+        report_text.append(test_input)
+        report_text.append('\n')
 
+        report_text.append('Correct output\n')
+        report_text.append(correct_output)
+        report_text.append('\n')
+
+        if return_code not in ['TLE']:
             report_text.append('Your output\n')
             report_text.append(process_output)
             report_text.append('\n')
-
+    
             report_text.append('Correct output\'s length: ' +
                                str(len(correct_output)))
             report_text.append('\n')
@@ -79,8 +87,6 @@ def report(
             report_text.append('\n')
             report_text.append('Ran in {:.3f} s'.format(process_runtime))
             report_text.append('\n')
-        else:
-            report_text.append(process_output)
 
     print(''.join(report_text), end='')
 
@@ -142,8 +148,12 @@ if __name__ == '__main__':
 
         process_runtime = perf_counter() - start
 
+        inp.seek(0)
+        test_input = inp.read()
+
         report(
             test_id,
+            test_input,
             process_output,
             correct_output,
             process_runtime,
