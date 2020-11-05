@@ -4,89 +4,66 @@ import subprocess
 from time import perf_counter
 from os import listdir
 from os.path import join
+from typing import Optional
+
 try:
+    # noinspection PyShadowingBuiltins
     from natsort import natsorted as sorted
 except ImportError:
     pass
 
+
 def report(
-        test_id,
-        test_input,
-        user_output,
-        correct_output,
-        user_runtime,
-        time_limit,
-        rte,
-        tle,
-        verbose=False
+        filename: str,
+        input_text: str,
+        user_output_text: str,
+        correct_output_text: str,
+        user_runtime: float,
+        runtime_limit: Optional[int],
+        is_rte: bool,
+        is_tle: bool,
+        verbose: bool = False
 ):
-    '''
-        Print test results to screen
-    '''
-    report_text = []
+    """Print test results to screen"""
 
-    MAX_LEN = 42
-
-    report_text.append('-' * MAX_LEN)
-    report_text.append('\n')
-
-    report_text.append('TEST {}: '.format(test_id))
-    len_so_far = len(report_text[-1])
-
-    if rte:
+    if is_rte:
         return_code = 'RTE'
-    elif tle:
+    elif is_tle:
         return_code = 'TLE'
-    elif user_output == correct_output:
+    elif user_output_text == correct_output_text:
         return_code = 'PASS'
     else:
         return_code = 'FAILED'
-
-    LEFT_MARGIN = 9
-    padding = MAX_LEN - len_so_far - LEFT_MARGIN
-
-    report_text.append(' ' * padding)
-    report_text.append(return_code)
-
-    len_so_far += padding
-    len_so_far += len(return_code)
-    padding = MAX_LEN - len_so_far - 2
-
-    report_text.append(' ' * padding)
 
     mark = '✅'
     if return_code != 'PASS':
         mark = '❌'
 
-    report_text.append(mark)
-    report_text.append('\n')
+    _MAX_LEN = 42
+    _SPACES = 9
+    test_filename = 'TEST {}: '.format(filename)
+    padding1 = _MAX_LEN - len(test_filename) - _SPACES
+    padding2 = _SPACES - len(return_code) - 2
+
+    report_text = ['{}{}{}{}{}\n'.format(test_filename, ' ' * padding1, return_code, ' ' * padding2, mark)]
 
     # Additional information
     if verbose:
-        report_text.append('Input\n')
-        report_text.append(test_input)
-        report_text.append('\n')
-
-        report_text.append('Correct output\n')
-        report_text.append(correct_output)
-        report_text.append('\n')
+        report_text.append('Input\n{}\n'.format(input_text))
+        report_text.append('Correct output\n{}\n'.format(correct_output_text))
 
         if return_code not in ['TLE']:
-            report_text.append('Your output\n')
-            report_text.append(process_output)
-            report_text.append('\n')
-    
-            report_text.append('Correct output\'s length: ' +
-                               str(len(correct_output)))
-            report_text.append('\n')
-            report_text.append('Your    output\'s length: ' +
-                               str(len(process_output)))
-            report_text.append('\n')
+            report_text.append('Your output\n{}\n'.format(user_output_text))
+            report_text.append("Correct output's length: {}\n".format(len(correct_output_text)))
+            report_text.append("Your    output's length: {}\n".format(len(user_output_text)))
 
         if return_code != 'RTE':
-            report_text.append('\n')
-            report_text.append('Ran in {:.3f} s'.format(process_runtime))
-            report_text.append('\n')
+            report_text.append('\nRan in {:.3f} s\n'.format(user_runtime))
+
+        if time_limit:
+            report_text.append('Runtime limit: {:.3f}s\n'.format(runtime_limit))
+
+    report_text.append('{}\n'.format('-' * _MAX_LEN))
 
     print(''.join(report_text), end='')
 
