@@ -161,6 +161,8 @@ if __name__ == '__main__':
 
         total = pt_len + ft_len + rte_len + tle_len
 
+        summary.write("RESULT FOR {}\n\n".format(python_file))
+
         summary.write("TOTAL TEST(s): {}\n\n".format(total))
 
         summary.write("{} PASS TEST(s)\n".format(pt_len))
