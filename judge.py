@@ -27,37 +27,41 @@ def report(
     """Print test results to screen"""
 
     if is_rte:
-        return_code = 'RTE'
+        test_result = 'RTE'
+        rte_tests.add(filename)
     elif is_tle:
-        return_code = 'TLE'
+        test_result = 'TLE'
+        tle_tests.add(filename)
     elif user_output_text == correct_output_text:
-        return_code = 'PASS'
+        test_result = 'PASS'
+        pass_tests.add(filename)
     else:
-        return_code = 'FAILED'
+        test_result = 'FAILED'
+        failed_tests.add(filename)
 
     mark = '✅'
-    if return_code != 'PASS':
+    if test_result != 'PASS':
         mark = '❌'
 
     _MAX_LEN = 42
     _SPACES = 9
     test_filename = 'TEST {}: '.format(filename)
     padding1 = _MAX_LEN - len(test_filename) - _SPACES
-    padding2 = _SPACES - len(return_code) - 2
+    padding2 = _SPACES - len(test_result) - 2
 
-    report_text = ['{}{}{}{}{}\n'.format(test_filename, ' ' * padding1, return_code, ' ' * padding2, mark)]
+    report_text = ['{}{}{}{}{}\n'.format(test_filename, ' ' * padding1, test_result, ' ' * padding2, mark)]
 
     # Additional information
     if verbose:
         report_text.append('Input\n{}\n'.format(input_text))
         report_text.append('Correct output\n{}\n'.format(correct_output_text))
 
-        if return_code not in ['TLE']:
+        if test_result not in ['TLE']:
             report_text.append('Your output\n{}\n'.format(user_output_text))
             report_text.append("Correct output's length: {}\n".format(len(correct_output_text)))
             report_text.append("Your    output's length: {}\n".format(len(user_output_text)))
 
-        if return_code != 'RTE':
+        if test_result != 'RTE':
             report_text.append('\nRan in {:.3f} s\n'.format(user_runtime))
 
         if time_limit:
@@ -66,6 +70,8 @@ def report(
     report_text.append('{}\n'.format('-' * _MAX_LEN))
 
     print(''.join(report_text), end='')
+
+    return test_result
 
 
 if __name__ == '__main__':
@@ -96,6 +102,10 @@ if __name__ == '__main__':
 
     command = ['python', python_file]
 
+    pass_tests = set()
+    failed_tests = set()
+    rte_tests = set()
+    tle_tests = set()
     # Run tests and report
     inp_files_name = sorted(listdir(join(test_folder, 'inp')))
     for test_id in inp_files_name:
@@ -128,7 +138,7 @@ if __name__ == '__main__':
         inp.seek(0)
         test_input = inp.read()
 
-        report(
+        return_code = report(
             test_id,
             test_input,
             process_output,
@@ -142,3 +152,37 @@ if __name__ == '__main__':
 
         inp.close()
         out.close()
+
+    with open(os.path.join(test_folder, 'summary.txt'), 'w') as summary:
+        pt_len = len(pass_tests)
+        ft_len = len(failed_tests)
+        rte_len = len(rte_tests)
+        tle_len = len(tle_tests)
+
+        total = pt_len + ft_len + rte_len + tle_len
+
+        summary.write("TOTAL TEST(s): {}\n\n".format(total))
+
+        summary.write("{} PASS TEST(s)\n".format(pt_len))
+
+        for filename in sorted(pass_tests):
+            summary.write("{} ".format(filename))
+        summary.write('\n\n')
+
+        summary.write("{} FAILED TEST(s)\n".format(ft_len))
+
+        for filename in sorted(failed_tests):
+            summary.write("{} ".format(filename))
+        summary.write('\n\n')
+
+        summary.write("{} RTE TEST(s)\n".format(rte_len))
+
+        for filename in sorted(rte_tests):
+            summary.write("{} ".format(filename))
+        summary.write('\n\n')
+
+        summary.write("{} TLE TEST(s)\n".format(tle_len))
+
+        for filename in sorted(tle_tests):
+            summary.write("{} ".format(filename))
+        summary.write('\n\n')
