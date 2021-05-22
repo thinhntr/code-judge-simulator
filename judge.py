@@ -49,7 +49,8 @@ def report(
     padding1 = _MAX_LEN - len(test_filename) - _SPACES
     padding2 = _SPACES - len(test_result) - 2
 
-    report_text = ['{}{}{}{}{}\n'.format(test_filename, ' ' * padding1, test_result, ' ' * padding2, mark)]
+    report_text = ['{}{}{}{}{}\n'.format(
+        test_filename, ' ' * padding1, test_result, ' ' * padding2, mark)]
 
     # Additional information
     if verbose:
@@ -58,14 +59,17 @@ def report(
 
         if test_result not in ['TLE']:
             report_text.append('Your output\n{}\n'.format(user_output_text))
-            report_text.append("Correct output's length: {}\n".format(len(correct_output_text)))
-            report_text.append("Your    output's length: {}\n".format(len(user_output_text)))
+            report_text.append("Correct output's length: {}\n".format(
+                len(correct_output_text)))
+            report_text.append(
+                "Your    output's length: {}\n".format(len(user_output_text)))
 
         if test_result != 'RTE':
             report_text.append('\nRan in {:.3f} s\n'.format(user_runtime))
 
         if time_limit:
-            report_text.append('Runtime limit: {:.3f}s\n'.format(runtime_limit))
+            report_text.append(
+                'Runtime limit: {:.3f}s\n'.format(runtime_limit))
 
     report_text.append('{}\n'.format('-' * _MAX_LEN))
 
@@ -83,7 +87,7 @@ if __name__ == '__main__':
         raise
     f.close()
 
-    python_file = sys.argv[1]
+    source_file = sys.argv[1]
 
     test_folder = sys.argv[2]
 
@@ -100,7 +104,15 @@ if __name__ == '__main__':
 
     num_inputs = len(os.listdir(os.path.join(test_folder, 'inp')))
 
-    command = ['python', python_file]
+    source_name, file_type = source_file.split(".")
+
+    if file_type == "py":
+        command = ["python", source_file]
+    elif file_type == "cpp":
+        os.system(f"g++ {source_file} -o {source_name}")
+        command = [f"./{source_name}"]
+    else:
+        raise RuntimeError("This file type is not supported")
 
     pass_tests = set()
     failed_tests = set()
@@ -153,38 +165,38 @@ if __name__ == '__main__':
         inp.close()
         out.close()
 
-    with open(os.path.join(test_folder, 'summary.txt'), 'w') as summary:
-        pt_len = len(pass_tests)
-        ft_len = len(failed_tests)
-        rte_len = len(rte_tests)
-        tle_len = len(tle_tests)
+    # with open(os.path.join(test_folder, 'summary.txt'), 'w') as summary:
+    #     pt_len = len(pass_tests)
+    #     ft_len = len(failed_tests)
+    #     rte_len = len(rte_tests)
+    #     tle_len = len(tle_tests)
 
-        total = pt_len + ft_len + rte_len + tle_len
+    #     total = pt_len + ft_len + rte_len + tle_len
 
-        summary.write("RESULT FOR {}\n\n".format(python_file))
+    #     summary.write("RESULT FOR {}\n\n".format(python_file))
 
-        summary.write("TOTAL TEST(s): {}\n\n".format(total))
+    #     summary.write("TOTAL TEST(s): {}\n\n".format(total))
 
-        summary.write("{} PASS TEST(s)\n".format(pt_len))
+    #     summary.write("{} PASS TEST(s)\n".format(pt_len))
 
-        for filename in sorted(pass_tests):
-            summary.write("{} ".format(filename))
-        summary.write('\n\n')
+    #     for filename in sorted(pass_tests):
+    #         summary.write("{} ".format(filename))
+    #     summary.write('\n\n')
 
-        summary.write("{} FAILED TEST(s)\n".format(ft_len))
+    #     summary.write("{} FAILED TEST(s)\n".format(ft_len))
 
-        for filename in sorted(failed_tests):
-            summary.write("{} ".format(filename))
-        summary.write('\n\n')
+    #     for filename in sorted(failed_tests):
+    #         summary.write("{} ".format(filename))
+    #     summary.write('\n\n')
 
-        summary.write("{} RTE TEST(s)\n".format(rte_len))
+    #     summary.write("{} RTE TEST(s)\n".format(rte_len))
 
-        for filename in sorted(rte_tests):
-            summary.write("{} ".format(filename))
-        summary.write('\n\n')
+    #     for filename in sorted(rte_tests):
+    #         summary.write("{} ".format(filename))
+    #     summary.write('\n\n')
 
-        summary.write("{} TLE TEST(s)\n".format(tle_len))
+    #     summary.write("{} TLE TEST(s)\n".format(tle_len))
 
-        for filename in sorted(tle_tests):
-            summary.write("{} ".format(filename))
-        summary.write('\n\n')
+    #     for filename in sorted(tle_tests):
+    #         summary.write("{} ".format(filename))
+    #     summary.write('\n\n')
